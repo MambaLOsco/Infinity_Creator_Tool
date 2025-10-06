@@ -23,7 +23,7 @@ creatorpack/
   tests/               # pytest suite
 ```
 
-Run `python -m creatorpak.app_cli.main run --help` for command usage.
+Run `python -m creatorpack.app_cli.main run --help` for command usage.
 
 ## Installation
 
@@ -54,6 +54,17 @@ creatorpack run --file path/to/video.mp4 \
 Outputs are written to `exports/<slug>/` including transcripts, chapters, highlight placeholders, credits, and
 provenance metadata.
 
+## Create a local bundle
+
+Package the repository into a ready-to-share folder (and optional `.zip`) without any git metadata:
+
+```bash
+creatorpack bundle --output CreatorPack-local --archive
+```
+
+The command copies the source tree, emits `INSTALL.md` with setup steps, and writes `bundle_manifest.json`
+describing the included assets so you can zip and transfer the toolkit to another machine.
+
 ## Development
 
 Run the automated tests:
@@ -71,7 +82,7 @@ A PyInstaller spec is provided at `creatorpack/packaging.spec`. Build binaries a
 virtual environment:
 
 ```bash
-pyinstaller creatorpak/packaging.spec
+pyinstaller creatorpack/packaging.spec
 ```
 
 ## Known Limitations

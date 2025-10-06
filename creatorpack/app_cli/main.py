@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Iterable, List
 
 from .branding.theme import load_theme
+from .bundle import create_bundle
 from .ingest.downloader import compute_checksum, download_to_path
 from .ingest.license_gate import guard_license
 from .ingest.sources import detect_adapter_with_name
@@ -23,25 +24,63 @@ from .util.errors import CreatorPackError
 from .util.logging import get_logger
 
 
-def _parse_args(argv: Iterable[str]) -> argparse.Namespace:
+def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="CreatorPack CLI")
-    parser.add_argument("run", help="Run the processing pipeline", nargs="?")
-    parser.add_argument("inputs", nargs="*", help="Input URLs or files")
-    parser.add_argument("--url", action="append", dest="urls")
-    parser.add_argument("--file", action="append", dest="files")
-    parser.add_argument("--template", default="creator-pack")
-    parser.add_argument("--minutes", type=int, default=10, choices=[10, 15])
-    parser.add_argument("--smart", action="store_true")
-    parser.add_argument("--highlights", action="store_true")
-    parser.add_argument("--brand")
-    parser.add_argument("--localize")
-    parser.add_argument("--diarize", action="store_true")
-    parser.add_argument("--out", default="exports")
-    parser.add_argument(
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    run_parser = subparsers.add_parser("run", help="Execute the processing pipeline")
+    run_parser.add_argument(
+        "inputs",
+        nargs="*",
+        help="Input URLs or files processed in addition to --url/--file flags.",
+    )
+    run_parser.add_argument("--url", action="append", dest="urls")
+    run_parser.add_argument("--file", action="append", dest="files")
+    run_parser.add_argument("--template", default="creator-pack")
+    run_parser.add_argument("--minutes", type=int, default=10, choices=[10, 15])
+    run_parser.add_argument("--smart", action="store_true")
+    run_parser.add_argument("--highlights", action="store_true")
+    run_parser.add_argument("--brand")
+    run_parser.add_argument("--localize")
+    run_parser.add_argument("--diarize", action="store_true")
+    run_parser.add_argument("--out", default="exports")
+    run_parser.add_argument(
         "--allow-sources",
         default="pexels,nasa,commons,europeana,archive,local",
     )
-    parser.add_argument("--block-nc-nd", action="store_true", default=True)
+    run_parser.set_defaults(block_nc_nd=True)
+    run_parser.add_argument(
+        "--allow-nc-nd",
+        dest="block_nc_nd",
+        action="store_false",
+        help="Permit NC/ND licenses (defaults to blocking).",
+    )
+
+    bundle_parser = subparsers.add_parser(
+        "bundle", help="Create a ready-to-run folder for local usage"
+    )
+    bundle_parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path("CreatorPack-local"),
+        help="Destination directory for the bundle.",
+    )
+    bundle_parser.add_argument(
+        "--archive",
+        action="store_true",
+        help="Also produce a zip archive next to the bundle folder.",
+    )
+    bundle_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite the destination directory if it already exists.",
+    )
+
+    return parser
+
+
+def _parse_args(argv: Iterable[str]) -> argparse.Namespace:
+    parser = _build_parser()
     return parser.parse_args(argv)
 
 
@@ -133,8 +172,19 @@ def _generate_highlights(
     return outputs
 
 
-def run(argv: Iterable[str] | None = None) -> int:
-    args = _parse_args(argv or sys.argv[1:])
+def _execute_bundle(args: argparse.Namespace) -> int:
+    logger = get_logger()
+    result = create_bundle(args.output, archive=args.archive, force=args.force)
+    logger.info(
+        "bundle_created",
+        root=str(result.root),
+        archive=str(result.archive) if result.archive else None,
+        included=result.included,
+    )
+    return 0
+
+
+def _execute_run(args: argparse.Namespace) -> int:
     inputs = _collect_inputs(args)
     if not inputs:
         raise SystemExit("Provide at least one --url or --file input")
@@ -213,6 +263,13 @@ def run(argv: Iterable[str] | None = None) -> int:
 
     logger.info("job_completed", export_dir=str(ctx.root))
     return 0
+
+
+def run(argv: Iterable[str] | None = None) -> int:
+    args = _parse_args(argv or sys.argv[1:])
+    if args.command == "bundle":
+        return _execute_bundle(args)
+    return _execute_run(args)
 
 
 def main() -> None:
