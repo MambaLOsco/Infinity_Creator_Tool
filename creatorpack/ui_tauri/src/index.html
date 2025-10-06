@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>CreatorPack</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 2rem; }
+      form { display: flex; gap: 1rem; flex-wrap: wrap; }
+      label { display: flex; flex-direction: column; font-size: 0.9rem; }
+      #log { margin-top: 2rem; max-height: 300px; overflow-y: auto; background: #111; color: #0f0; padding: 1rem; }
+    </style>
+  </head>
+  <body>
+    <h1>CreatorPack</h1>
+    <form>
+      <label>Media File<input name="input" type="text" required /></label>
+      <label>Brand Theme<input name="brand" type="text" placeholder="examples/brand_default.yaml" /></label>
+      <label>Chapter Minutes<select name="minutes"><option value="10">10</option><option value="15">15</option></select></label>
+      <button type="submit">Run</button>
+    </form>
+    <section id="log" aria-live="polite"></section>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
