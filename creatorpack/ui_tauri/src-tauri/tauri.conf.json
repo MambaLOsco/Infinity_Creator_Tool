@@ -1,0 +1,20 @@
+{
+  "$schema": "https://schema.tauri.app/config/1",
+  "package": {
+    "productName": "CreatorPack",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "windows": [
+      {
+        "title": "CreatorPack",
+        "width": 1000,
+        "height": 700
+      }
+    ],
+    "bundle": {
+      "identifier": "dev.creatorpack.desktop",
+      "icon": []
+    }
+  }
+}

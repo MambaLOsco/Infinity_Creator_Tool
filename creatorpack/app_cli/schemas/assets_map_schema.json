@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CreatorPack Assets Map",
+  "type": "object",
+  "required": ["source", "chunks", "shorts"],
+  "properties": {
+    "source": {"type": "string"},
+    "chunks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["file", "srt", "start", "end"],
+        "properties": {
+          "file": {"type": "string"},
+          "srt": {"type": "string"},
+          "start": {"type": "number"},
+          "end": {"type": "number"}
+        }
+      }
+    },
+    "shorts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["file", "start", "end", "caption"],
+        "properties": {
+          "file": {"type": "string"},
+          "start": {"type": "number"},
+          "end": {"type": "number"},
+          "caption": {"type": "string"}
+        }
+      }
+    }
+  }
+}
