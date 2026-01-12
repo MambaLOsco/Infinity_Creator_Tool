@@ -24,3 +24,17 @@ class CreditsBuilder:
             license_line = f"[{entry.license_code}]({entry.license_url})" if entry.license_url else entry.license_code
             lines.append(f"- **{entry.title}** by {creator} – {license_line}")
         return "\n".join(lines) + "\n"
+
+    def to_dict(self) -> dict:
+        return {
+            "entries": [
+                {
+                    "title": entry.title,
+                    "creator": entry.creator,
+                    "license_code": entry.license_code,
+                    "license_url": entry.license_url,
+                    "source": entry.source,
+                }
+                for entry in self.entries
+            ]
+        }

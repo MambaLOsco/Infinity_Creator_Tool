@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+from ..util.errors import CreatorPackError, ExitCodes
+
 try:  # pragma: no cover - optional dependency
     import yaml  # type: ignore
 except Exception:  # pragma: no cover - fallback parser
@@ -68,6 +70,8 @@ class BrandTheme:
     outro_path: Optional[Path]
     watermark_path: Optional[Path]
     watermark_position_expr: str
+    watermark_scale: float
+    watermark_opacity: float
 
     @property
     def watermark_position(self) -> str:
@@ -85,20 +89,44 @@ def _resolve_overlay(position: str) -> str:
     return mapping.get(position, "10:10")
 
 
+class BrandThemeError(CreatorPackError):
+    """Raised when branding configuration is invalid."""
+
+    exit_code = ExitCodes.INVALID_INPUT
+
+
 def load_brand_theme(path: Path) -> BrandTheme:
     content = _load_yaml(path)
-    watermark = content.get("watermark", {}) if isinstance(content, dict) else {}
-    watermark_file = watermark.get("file") if isinstance(watermark, dict) else None
+    if not isinstance(content, dict):
+        raise BrandThemeError("Brand theme config must be a YAML mapping")
+
+    watermark = content.get("watermark", {})
+    if watermark is None:
+        watermark = {}
+    if not isinstance(watermark, dict):
+        raise BrandThemeError("Brand theme watermark config must be a mapping")
+
+    watermark_file = watermark.get("file")
     watermark_path = Path(watermark_file) if watermark_file else None
+    if watermark_path and not watermark_path.exists():
+        raise BrandThemeError(f"Watermark file not found: {watermark_path}")
+
+    scale = float(watermark.get("scale", 1.0))
+    opacity = float(watermark.get("opacity", 1.0))
+    if not 0.05 <= scale <= 1.0:
+        raise BrandThemeError("Watermark scale must be between 0.05 and 1.0")
+    if not 0.0 < opacity <= 1.0:
+        raise BrandThemeError("Watermark opacity must be between 0 and 1.0")
+
     return BrandTheme(
-        name=content.get("name", "Untitled") if isinstance(content, dict) else "Untitled",
-        fonts=content.get("fonts", {}) if isinstance(content, dict) else {},
-        colors=content.get("colors", {}) if isinstance(content, dict) else {},
-        captions=content.get("captions", {}) if isinstance(content, dict) else {},
-        intro_path=Path(content["intro"]) if isinstance(content, dict) and content.get("intro") else None,
-        outro_path=Path(content["outro"]) if isinstance(content, dict) and content.get("outro") else None,
+        name=content.get("name", "Untitled"),
+        fonts=content.get("fonts", {}),
+        colors=content.get("colors", {}),
+        captions=content.get("captions", {}),
+        intro_path=Path(content["intro"]) if content.get("intro") else None,
+        outro_path=Path(content["outro"]) if content.get("outro") else None,
         watermark_path=watermark_path,
-        watermark_position_expr=_resolve_overlay(
-            watermark.get("position", "top_right") if isinstance(watermark, dict) else "top_right"
-        ),
+        watermark_position_expr=_resolve_overlay(watermark.get("position", "top_right")),
+        watermark_scale=scale,
+        watermark_opacity=opacity,
     )

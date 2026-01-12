@@ -41,6 +41,16 @@ class TranscriptResult:
             ],
         }
 
+    def to_text(self) -> str:
+        return "\n".join(segment.text for segment in self.segments if segment.text).strip() + "\n"
+
+
+def ensure_faster_whisper_available() -> None:
+    try:
+        from faster_whisper import WhisperModel  # type: ignore  # noqa: F401
+    except Exception as exc:  # pragma: no cover - optional dependency
+        raise TranscriptionError("faster-whisper is not available") from exc
+
 
 def transcribe_media(path: Path, diarize: bool = False) -> TranscriptResult:
     try:
