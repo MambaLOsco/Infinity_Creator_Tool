@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CreatorPack</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 0;
+        padding: 16px;
+        background: #111;
+        color: #f8f8f8;
+      }
+      label {
+        display: block;
+        margin-bottom: 8px;
+      }
+      input, select {
+        width: 100%;
+        padding: 8px;
+        margin-top: 4px;
+        margin-bottom: 12px;
+      }
+      button {
+        padding: 10px 16px;
+        background: #00e0a4;
+        border: none;
+        color: #101114;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      pre {
+        background: #1f1f1f;
+        padding: 12px;
+        height: 200px;
+        overflow-y: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>CreatorPack</h1>
+    <form id="job-form">
+      <label>
+        Media file
+        <input name="file" type="text" placeholder="/path/to/file.mp4" />
+      </label>
+      <label>
+        Template
+        <select name="template">
+          <option value="creator-pack">Creator Pack</option>
+          <option value="podcast">Podcast</option>
+          <option value="chapters-only">Chapters only</option>
+          <option value="shorts-only">Shorts only</option>
+        </select>
+      </label>
+      <label>
+        Minutes per chapter
+        <select name="minutes">
+          <option value="10">10</option>
+          <option value="15">15</option>
+        </select>
+      </label>
+      <label>
+        Smart alignment
+        <input name="smart" type="checkbox" />
+      </label>
+      <label>
+        Highlights
+        <input name="highlights" type="checkbox" />
+      </label>
+      <label>
+        Brand YAML
+        <input name="brand" type="text" placeholder="examples/brand_default.yaml" />
+      </label>
+      <button type="submit">Run CreatorPack</button>
+    </form>
+
+    <h2>Logs</h2>
+    <pre id="log"></pre>
+
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
