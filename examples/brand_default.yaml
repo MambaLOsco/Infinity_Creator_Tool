@@ -1,0 +1,20 @@
+name: "Default"
+fonts:
+  caption: "Inter-SemiBold.ttf"
+  lower_third: "Montserrat-Bold.ttf"
+colors:
+  primary: "#00E0A4"
+  secondary: "#101114"
+captions:
+  style: "boxed"
+  position: "safe_bottom"
+  max_chars_per_line: 32
+intro: "branding/intro.mp4"
+outro: "branding/outro.mp4"
+watermark:
+  file: "branding/logo.png"
+  alpha: 0.15
+  position: "top_right"
+safe_areas:
+  tiktok: true
+  shorts: true
