@@ -8,11 +8,12 @@ from typing import Any, Dict
 
 
 _LOGGER_NAME = "creatorpack.job"
+_RESERVED_LOG_RECORD_KEYS = set(logging.LogRecord("", 0, "", 0, "", (), None).__dict__.keys())
 
 
-def configure_logging(output_dir: Path) -> None:
-    output_dir.mkdir(parents=True, exist_ok=True)
-    log_path = output_dir / "job.log.jsonl"
+def configure_logging(log_dir: Path) -> None:
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_path = log_dir / "job.log.jsonl"
 
     handler = logging.FileHandler(log_path, encoding="utf-8")
     handler.setFormatter(_JsonLogFormatter())
@@ -33,9 +34,8 @@ class _JsonLogFormatter(logging.Formatter):
             "level": record.levelname,
             "message": record.getMessage(),
         }
-        if record.args and isinstance(record.args, dict):
-            data.update(record.args)
-        for attr in ("error", "probe", "count"):
-            if hasattr(record, attr):
-                data[attr] = getattr(record, attr)
+        for key, value in record.__dict__.items():
+            if key in _RESERVED_LOG_RECORD_KEYS:
+                continue
+            data[key] = value
         return json.dumps(data, ensure_ascii=False)

@@ -90,6 +90,22 @@ def chunk_media(
     return outputs
 
 
+def plan_chunk_outputs(
+    source: Path,
+    target_dir: Path,
+    segments: Iterable["MediaSegment"],
+    *,
+    short_mode: bool = False,
+) -> List["ChunkOutput"]:
+    outputs: List[ChunkOutput] = []
+    for index, segment in enumerate(segments, start=1):
+        suffix = "short" if short_mode else "part"
+        out_name = f"{source.stem}_{suffix}-{index:03d}.mp4"
+        dest = target_dir / out_name
+        outputs.append(ChunkOutput(file=dest, start=segment.start, end=segment.end))
+    return outputs
+
+
 @dataclass
 class MediaSegment:
     """Represents a segment boundary for cutting media."""
@@ -131,8 +147,11 @@ def _execute_cut(
 
     if brand and brand.watermark_path:
         filter_complex = (
-            "movie='{wm}'[wm];[0:v][wm]overlay={pos}".format(
+            "movie='{wm}',scale=iw*{scale}:ih*{scale},format=rgba,"
+            "colorchannelmixer=aa={opacity}[wm];[0:v][wm]overlay={pos}".format(
                 wm=brand.watermark_path.as_posix(),
+                scale=brand.watermark_scale,
+                opacity=brand.watermark_opacity,
                 pos=brand.watermark_position,
             )
         )

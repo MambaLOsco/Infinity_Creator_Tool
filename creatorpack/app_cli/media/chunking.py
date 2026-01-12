@@ -42,7 +42,8 @@ class ChapterPlan:
 
 
 def build_chapter_plan(transcript: TranscriptResult, duration: float, policy: ChapterPolicy) -> ChapterPlan:
-    segments = _smart_segments(transcript) if policy.allow_smart else []
+    duration = max(duration, 0.0)
+    segments = _smart_segments(transcript, duration) if policy.allow_smart else []
     chapters: List[Chapter] = []
 
     cursor = 0.0
@@ -52,7 +53,11 @@ def build_chapter_plan(transcript: TranscriptResult, duration: float, policy: Ch
         if segments:
             boundary = _find_boundary(segments, cursor, target_end, flex=15.0)
             if boundary is not None:
-                target_end = boundary
+                target_end = min(boundary, duration)
+        if target_end <= cursor:
+            target_end = min(cursor + policy.target_seconds, duration)
+            if target_end <= cursor:
+                break
         chapters.append(Chapter(index=index, start=cursor, end=target_end, title=f"Chapter {index}"))
         cursor = target_end
         index += 1
@@ -60,8 +65,8 @@ def build_chapter_plan(transcript: TranscriptResult, duration: float, policy: Ch
     return ChapterPlan(policy=policy, chapters=chapters)
 
 
-def _smart_segments(transcript: TranscriptResult) -> List[float]:
-    return [segment.end for segment in transcript.segments]
+def _smart_segments(transcript: TranscriptResult, duration: float) -> List[float]:
+    return [min(segment.end, duration) for segment in transcript.segments if segment.end > 0]
 
 
 def _find_boundary(segments: Iterable[float], start: float, desired_end: float, flex: float) -> float | None:
